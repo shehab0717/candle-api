@@ -22,4 +22,5 @@ URL_PREFIX = "api/v1"
 urlpatterns = [
     path("admin/", admin.site.urls),
     path(f"{URL_PREFIX}/users/", include("apps.users.urls")),
+    path(f"{URL_PREFIX}/blog/", include("apps.blog.urls")),
 ]
