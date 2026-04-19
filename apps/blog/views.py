@@ -5,9 +5,14 @@ from .serializers import (
     GetPostWithUserSerializer,
     GetUserPostsSerializer,
     CreatePostSerializer,
+    UpdatePostSerializer,
 )
 from rest_framework import status, permissions
+from rest_framework.request import Request
 from apps.users.models import User
+from django.shortcuts import get_object_or_404
+from .permissions import IsBlogAuthor
+from rest_framework.generics import RetrieveUpdateDestroyAPIView
 
 
 class PostListView(APIView):
@@ -40,3 +45,54 @@ class UserPostsView(APIView):
         user = User.objects.prefetch_related().get(pk=request.user.id)
         serializer = GetUserPostsSerializer(instance=user)
         return Response(serializer.data)
+
+
+class PostView(APIView):
+    def get_permissions(self):
+        perms = [IsBlogAuthor]
+        if self.request.method in permissions.SAFE_METHODS:
+            perms = [permissions.IsAuthenticated]
+        elif self.request.method == "DELETE":
+            perms = [IsBlogAuthor | permissions.IsAdminUser]
+        return [perm() for perm in perms]
+
+    def get(self, request, post_id):
+        post = get_object_or_404(Post.objects.select_related("author"), pk=post_id)
+        serializer = GetPostWithUserSerializer(instance=post)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, post_id):
+        post = get_object_or_404(Post.objects.select_related("author"), pk=post_id)
+        self.check_object_permissions(request, post)
+        serializer = UpdatePostSerializer(instance=post, data={**request.data})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, post_id):
+        post = get_object_or_404(Post.objects.select_related("author"), pk=post_id)
+        self.check_object_permissions(request, post)
+        post.delete()
+        return Response(status=status.HTTP_200_OK)
+
+
+class PostView2(RetrieveUpdateDestroyAPIView):
+    lookup_url_kwarg = "post_id"
+
+    def get_queryset(self):
+        return Post.objects.select_related("author")
+
+    def get_serializer_class(self):
+        if self.request.method == "GET":
+            return GetPostWithUserSerializer
+        else:
+            return UpdatePostSerializer
+
+    def get_permissions(self):
+        perms = [IsBlogAuthor]
+        if self.request.method in permissions.SAFE_METHODS:
+            perms = [permissions.IsAuthenticated]
+        elif self.request.method == "DELETE":
+            perms = [IsBlogAuthor | permissions.IsAdminUser]
+        return [perm() for perm in perms]
