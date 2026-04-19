@@ -12,7 +12,7 @@ from rest_framework.request import Request
 from apps.users.models import User
 from django.shortcuts import get_object_or_404
 from .permissions import IsBlogAuthor
-from rest_framework.generics import RetrieveUpdateDestroyAPIView
+from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListCreateAPIView
 
 
 class PostListView(APIView):
@@ -36,6 +36,19 @@ class PostListView(APIView):
                 GetPostSerializer(instance=post).data, status=status.HTTP_201_CREATED
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PostList(ListCreateAPIView):
+    queryset = Post.objects.select_related("author").order_by("-created_at")
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            return CreatePostSerializer
+        return GetPostWithUserSerializer
+
+    def perform_create(self, serializer):
+        return serializer.save(author=self.request.user)
 
 
 class UserPostsView(APIView):
