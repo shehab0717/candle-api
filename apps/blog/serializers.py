@@ -20,7 +20,7 @@ class GetUserPostsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["username", "email", "posts"]
+        fields = ["username", "email", "img", "posts"]
 
 
 class CreatePostSerializer(serializers.ModelSerializer):
