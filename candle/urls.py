@@ -25,6 +25,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path(f"{URL_PREFIX}/users/", include("apps.users.urls")),
     path(f"{URL_PREFIX}/posts/", include("apps.posts.urls")),
+    path(f"{URL_PREFIX}/comments/", include("apps.comments.urls")),
 ]
 
 
