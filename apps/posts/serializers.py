@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from apps.blog.models import Post, PostAttachment
+from apps.posts.models import Post, PostAttachment
 from apps.users.models import User
 from apps.users.serializers import GetUserSerializer
 
