@@ -39,7 +39,13 @@ class PostListView(APIView):
 
 
 class PostList(ListCreateAPIView):
-    queryset = Post.objects.select_related("author").order_by("-created_at")
+    queryset = (
+        Post.objects.select_related(
+            "author",
+        )
+        .prefetch_related("attachments")
+        .order_by("-created_at")
+    )
     permission_classes = [permissions.IsAuthenticated]
 
     def get_serializer_class(self):

@@ -4,4 +4,4 @@ from common.utils import UploadTo
 
 
 class User(AbstractUser):
-    img = models.ImageField(upload_to=UploadTo("user/"), blank=True, null=True)
+    img = models.ImageField(upload_to=UploadTo("users/"), blank=True, null=True)
